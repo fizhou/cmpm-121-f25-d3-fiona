@@ -24,7 +24,7 @@ Key Gameplay Challenge: Can players collect and craft tokens from nearby locatio
 - [x] delete everything in main.ts
 - [x] put a basic leaflet map on the screen
 - [x] draw the player's location on the map
-- [ ] draw a rectangle representing one cell on the map
-- [ ] use loops to draw a whole grid of cells on the map
-- [ ] clickable grid of cells to pick up and drop token
-- [ ] crafting of tokens
+- [x] draw a rectangle representing one cell on the map
+- [x] use loops to draw a whole grid of cells on the map
+- [x] clickable grid of cells to pick up and drop token
+- [x] crafting of tokens
