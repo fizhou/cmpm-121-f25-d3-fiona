@@ -82,12 +82,12 @@ function setTokenSpawn(lat: number, lng: number, value: number | null) {
 let hand: number | null = null;
 function renderHUD(msg = "") {
   hudElement.innerHTML = `
-    <div>In hand: ${hand === null ? "nothing" : `token(${hand})`}</div>
+    <div>in hand: ${hand === null ? "nothing" : `token(${hand})`}</div>
     <div>${msg}</div>
   `;
   if (hand && hand >= WIN_TARGET) {
     hudElement.innerHTML +=
-      `<div class="win-message">you win! refresh to play again.</div>`;
+      `<div class="win-message">yayyyy you win! refresh to play again.</div>`;
   }
 }
 renderHUD();
