@@ -36,6 +36,7 @@ Key Gameplay Challenge: Can players craft an even higher value token by moving t
 
 ### Steps
 
+- [x] create new interface to assist in making cells global
 - [x] replace logic that uses lat, lng with i, j identifiers
 - [ ] create small helper functions for coordinate conversion
 - [ ] render cells across the entire map

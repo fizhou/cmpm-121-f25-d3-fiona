@@ -13,9 +13,14 @@ const RANGE = 8;
 const INTERACT_RANGE = 3;
 const WIN_TARGET = 8;
 
-// id helpers
+// grid cell identifiers
+interface GridCellID {
+  i: number;
+  j: number;
+}
+
 type TileID = `${number},${number}`;
-const idOf = (i: number, j: number): TileID => `${i},${j}`;
+const idOf = (cell: GridCellID): TileID => `${cell.i},${cell.j}`;
 
 // dom elements
 const mapElement = document.createElement("div");
@@ -46,36 +51,36 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 leaflet.marker(ORIGIN).addTo(map).bindTooltip("teehee this is you :3");
 
 // grid data
-function cellBounds(i: number, j: number): leaflet.LatLngBounds {
+function cellBounds(cell: GridCellID): leaflet.LatLngBounds {
   const southWest = leaflet.latLng(
-    ORIGIN.lat + i * TILE_SIZE_DEGREES,
-    ORIGIN.lng + j * TILE_SIZE_DEGREES,
+    ORIGIN.lat + cell.i * TILE_SIZE_DEGREES,
+    ORIGIN.lng + cell.j * TILE_SIZE_DEGREES,
   );
   const northEast = leaflet.latLng(
-    ORIGIN.lat + (i + 1) * TILE_SIZE_DEGREES,
-    ORIGIN.lng + (j + 1) * TILE_SIZE_DEGREES,
+    ORIGIN.lat + (cell.i + 1) * TILE_SIZE_DEGREES,
+    ORIGIN.lng + (cell.j + 1) * TILE_SIZE_DEGREES,
   );
   return leaflet.latLngBounds([southWest, northEast]);
 }
 
-const nearPlayer = (i: number, j: number): boolean =>
-  Math.max(Math.abs(i), Math.abs(j)) <= INTERACT_RANGE;
+const nearPlayer = (cell: GridCellID): boolean =>
+  Math.max(Math.abs(cell.i), Math.abs(cell.j)) <= INTERACT_RANGE;
 
 // initial token spawning
-function initialTokenSpawn(i: number, j: number): number | null {
-  const r = luck(idOf(i, j));
+function initialTokenSpawn(cell: GridCellID): number | null {
+  const r = luck(idOf(cell));
   if (r < 0.18) return 1;
   return null;
 }
 
 const modified = new Map<TileID, number | null>();
-function currentTokenSpawn(i: number, j: number): number | null {
-  const key = idOf(i, j);
-  return modified.has(key) ? modified.get(key)! : initialTokenSpawn(i, j);
+function currentTokenSpawn(cell: GridCellID): number | null {
+  const key = idOf(cell);
+  return modified.has(key) ? modified.get(key)! : initialTokenSpawn(cell);
 }
 
-function setTokenSpawn(i: number, j: number, value: number | null) {
-  modified.set(idOf(i, j), value);
+function setTokenSpawn(cell: GridCellID, value: number | null) {
+  modified.set(idOf(cell), value);
 }
 
 // inventory and hud
@@ -96,14 +101,14 @@ renderHUD();
 type gridView = { rect: leaflet.Rectangle; tokenMarker: leaflet.Marker };
 const views = new Map<TileID, gridView>();
 
-function drawGrid(i: number, j: number) {
-  const key = idOf(i, j);
+function drawGrid(cell: GridCellID) {
+  const key = idOf(cell);
   if (views.has(key)) return;
 
-  const bounds = cellBounds(i, j);
+  const bounds = cellBounds(cell);
   const rect = leaflet.rectangle(bounds, {
-    color: nearPlayer(i, j) ? "blue" : "gray",
-    weight: nearPlayer(i, j) ? 2 : 1,
+    color: nearPlayer(cell) ? "blue" : "gray",
+    weight: nearPlayer(cell) ? 2 : 1,
     fillOpacity: 0.1,
   }).addTo(map);
 
@@ -112,22 +117,22 @@ function drawGrid(i: number, j: number) {
     interactive: false,
     icon: leaflet.divIcon({
       className: "token-label",
-      html: `${currentTokenSpawn(i, j) ?? ""}`,
+      html: `${currentTokenSpawn(cell) ?? ""}`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     }),
   }).addTo(map);
 
   rect.on("click", () => {
-    if (!nearPlayer(i, j)) {
+    if (!nearPlayer(cell)) {
       renderHUD("too far away to interact with that tile.");
       return;
     }
 
-    const here = currentTokenSpawn(i, j);
+    const here = currentTokenSpawn(cell);
     if (hand === null && here !== null) {
       hand = here;
-      setTokenSpawn(i, j, null);
+      setTokenSpawn(cell, null);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: "",
@@ -138,7 +143,7 @@ function drawGrid(i: number, j: number) {
 
     if (hand !== null && here === hand) {
       const newValue = hand * 2;
-      setTokenSpawn(i, j, newValue);
+      setTokenSpawn(cell, newValue);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${newValue}`,
@@ -149,7 +154,7 @@ function drawGrid(i: number, j: number) {
     }
 
     if (hand !== null && here === null) {
-      setTokenSpawn(i, j, hand);
+      setTokenSpawn(cell, hand);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${hand}`,
@@ -162,11 +167,11 @@ function drawGrid(i: number, j: number) {
     renderHUD("cannot interact with that tile.");
   });
 
-  views.set(key, { rect, tokenMarker: label });
+  views.set(idOf(cell), { rect, tokenMarker: label });
 }
 
 for (let i = -RANGE; i <= RANGE; i++) {
   for (let j = -RANGE; j <= RANGE; j++) {
-    drawGrid(i, j);
+    drawGrid({ i, j });
   }
 }
