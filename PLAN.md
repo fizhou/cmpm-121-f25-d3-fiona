@@ -43,5 +43,5 @@ Key Gameplay Challenge: Can players craft an even higher value token by moving t
 - [x] add player movement controls
 - [x] add nearby player cell only interaction
 - [x] make cells memoryless when not in view
-- [ ] update token crafting goal to a larger value
+- [x] update token crafting goal to a larger value
 - [x] add moveend event to spawn and despawn cells

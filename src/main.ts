@@ -12,7 +12,7 @@ const WORLD_ORIGIN_LNG = 0;
 const ZOOM_LEVEL = 19;
 const TILE_SIZE_DEGREES = 0.0001;
 const INTERACT_RANGE = 3;
-const WIN_TARGET = 8;
+const WIN_TARGET = 64;
 
 // grid cell identifiers
 interface GridCellID {
@@ -198,7 +198,7 @@ function updateRectStyle() {
     const cell: GridCellID = { i: Number(iStr), j: Number(jStr) };
 
     const isNear = nearPlayer(cell);
-      view.rect.setStyle({
+    view.rect.setStyle({
       color: isNear ? "blue" : "gray",
       weight: isNear ? 2 : 1,
     });
@@ -262,16 +262,16 @@ document.body.append(controlElements);
 
 (document.getElementById("move-north") as HTMLButtonElement).onclick = () => {
   movePlayer(1, 0);
-}
+};
 (document.getElementById("move-south") as HTMLButtonElement).onclick = () => {
   movePlayer(-1, 0);
-}
+};
 (document.getElementById("move-west") as HTMLButtonElement).onclick = () => {
   movePlayer(0, -1);
-}
+};
 (document.getElementById("move-east") as HTMLButtonElement).onclick = () => {
   movePlayer(0, 1);
-}
+};
 
 // initial grid rendering
 clearGrid();
