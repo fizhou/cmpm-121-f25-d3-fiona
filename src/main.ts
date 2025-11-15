@@ -11,7 +11,6 @@ const WORLD_ORIGIN_LAT = 0;
 const WORLD_ORIGIN_LNG = 0;
 const ZOOM_LEVEL = 19;
 const TILE_SIZE_DEGREES = 0.0001;
-const RANGE = 8;
 const INTERACT_RANGE = 3;
 const WIN_TARGET = 8;
 
@@ -24,9 +23,10 @@ interface GridCellID {
 type TileID = `${number},${number}`;
 const idOf = (cell: GridCellID): TileID => `${cell.i},${cell.j}`;
 
+// helper functions
 function latLngToCell(lat: number, lng: number): GridCellID {
-  const i = Math.floor((lat - ORIGIN.lat) / TILE_SIZE_DEGREES);
-  const j = Math.floor((lng - ORIGIN.lng) / TILE_SIZE_DEGREES);
+  const i = Math.floor((lat - WORLD_ORIGIN_LAT) / TILE_SIZE_DEGREES);
+  const j = Math.floor((lng - WORLD_ORIGIN_LNG) / TILE_SIZE_DEGREES);
   return { i, j };
 }
 
@@ -78,7 +78,8 @@ function cellBounds(cell: GridCellID): leaflet.LatLngBounds {
 }
 
 const nearPlayer = (cell: GridCellID): boolean =>
-  Math.max(Math.abs(cell.i), Math.abs(cell.j)) <= INTERACT_RANGE;
+  Math.max(Math.abs(cell.i - playerCell.i), Math.abs(cell.j - playerCell.j)) <=
+    INTERACT_RANGE;
 
 // initial token spawning
 function initialTokenSpawn(cell: GridCellID): number | null {
@@ -184,8 +185,38 @@ function drawGrid(cell: GridCellID) {
   views.set(idOf(cell), { rect, tokenMarker: label });
 }
 
-for (let di = -RANGE; di <= RANGE; di++) {
-  for (let dj = -RANGE; dj <= RANGE; dj++) {
-    drawGrid({ i: playerCell.i + di, j: playerCell.j + dj });
+function clearGrid() {
+  const bounds = map.getBounds();
+  const southWest = bounds.getSouthWest();
+  const northEast = bounds.getNorthEast();
+
+  const minCell = latLngToCell(southWest.lat, southWest.lng);
+  const maxCell = latLngToCell(northEast.lat, northEast.lng);
+
+  const visibleCells = new Set<TileID>();
+
+  for (let i = minCell.i; i <= maxCell.i; i++) {
+    for (let j = minCell.j; j <= maxCell.j; j++) {
+      const cell: GridCellID = { i, j };
+      const key = idOf(cell);
+      visibleCells.add(key);
+      drawGrid(cell);
+    }
+  }
+
+  for (const [key, view] of views) {
+    if (!visibleCells.has(key)) {
+      map.removeLayer(view.rect);
+      map.removeLayer(view.tokenMarker);
+      views.delete(key);
+
+      modified.delete(key);
+    }
   }
 }
+
+clearGrid();
+
+map.on("moveend", () => {
+  clearGrid();
+});
