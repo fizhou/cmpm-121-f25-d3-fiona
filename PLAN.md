@@ -38,10 +38,10 @@ Key Gameplay Challenge: Can players craft an even higher value token by moving t
 
 - [x] create new interface to assist in making cells global
 - [x] replace logic that uses lat, lng with i, j identifiers
-- [ ] create small helper functions for coordinate conversion
+- [x] create small helper functions for coordinate conversion
 - [ ] render cells across the entire map
 - [ ] add player movement controls
-- [ ] add nearby player cell only interaction
+- [x] add nearby player cell only interaction
 - [ ] make cells memoryless when not in view
 - [ ] update token crafting goal to a larger value
 - [ ] add moveend event to spawn and despawn cells

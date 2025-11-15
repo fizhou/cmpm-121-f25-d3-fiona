@@ -7,6 +7,8 @@ import luck from "./_luck.ts";
 
 // map and grid configuration
 const ORIGIN = leaflet.latLng(36.9985, -122.0600);
+const WORLD_ORIGIN_LAT = 0;
+const WORLD_ORIGIN_LNG = 0;
 const ZOOM_LEVEL = 19;
 const TILE_SIZE_DEGREES = 0.0001;
 const RANGE = 8;
@@ -21,6 +23,23 @@ interface GridCellID {
 
 type TileID = `${number},${number}`;
 const idOf = (cell: GridCellID): TileID => `${cell.i},${cell.j}`;
+
+function latLngToCell(lat: number, lng: number): GridCellID {
+  const i = Math.floor((lat - ORIGIN.lat) / TILE_SIZE_DEGREES);
+  const j = Math.floor((lng - ORIGIN.lng) / TILE_SIZE_DEGREES);
+  return { i, j };
+}
+
+function cellToBounds(cell: GridCellID): leaflet.LatLngBounds {
+  const south = WORLD_ORIGIN_LAT + cell.i * TILE_SIZE_DEGREES;
+  const west = WORLD_ORIGIN_LNG + cell.j * TILE_SIZE_DEGREES;
+  const north = WORLD_ORIGIN_LAT + (cell.i + 1) * TILE_SIZE_DEGREES;
+  const east = WORLD_ORIGIN_LNG + (cell.j + 1) * TILE_SIZE_DEGREES;
+  return leaflet.latLngBounds(
+    leaflet.latLng(south, west),
+    leaflet.latLng(north, east),
+  );
+}
 
 // dom elements
 const mapElement = document.createElement("div");
@@ -50,17 +69,12 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 // player marker
 leaflet.marker(ORIGIN).addTo(map).bindTooltip("teehee this is you :3");
 
+// player grid position
+const playerCell: GridCellID = latLngToCell(ORIGIN.lat, ORIGIN.lng);
+
 // grid data
 function cellBounds(cell: GridCellID): leaflet.LatLngBounds {
-  const southWest = leaflet.latLng(
-    ORIGIN.lat + cell.i * TILE_SIZE_DEGREES,
-    ORIGIN.lng + cell.j * TILE_SIZE_DEGREES,
-  );
-  const northEast = leaflet.latLng(
-    ORIGIN.lat + (cell.i + 1) * TILE_SIZE_DEGREES,
-    ORIGIN.lng + (cell.j + 1) * TILE_SIZE_DEGREES,
-  );
-  return leaflet.latLngBounds([southWest, northEast]);
+  return cellToBounds(cell);
 }
 
 const nearPlayer = (cell: GridCellID): boolean =>
@@ -170,8 +184,8 @@ function drawGrid(cell: GridCellID) {
   views.set(idOf(cell), { rect, tokenMarker: label });
 }
 
-for (let i = -RANGE; i <= RANGE; i++) {
-  for (let j = -RANGE; j <= RANGE; j++) {
-    drawGrid({ i, j });
+for (let di = -RANGE; di <= RANGE; di++) {
+  for (let dj = -RANGE; dj <= RANGE; dj++) {
+    drawGrid({ i: playerCell.i + di, j: playerCell.j + dj });
   }
 }
