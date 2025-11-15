@@ -40,7 +40,7 @@ Key Gameplay Challenge: Can players craft an even higher value token by moving t
 - [x] replace logic that uses lat, lng with i, j identifiers
 - [x] create small helper functions for coordinate conversion
 - [x] render cells across the entire map
-- [ ] add player movement controls
+- [x] add player movement controls
 - [x] add nearby player cell only interaction
 - [x] make cells memoryless when not in view
 - [ ] update token crafting goal to a larger value

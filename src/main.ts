@@ -6,7 +6,7 @@ import "./_leafletWorkaround.ts";
 import luck from "./_luck.ts";
 
 // map and grid configuration
-const ORIGIN = leaflet.latLng(36.9985, -122.0600);
+const ORIGIN = leaflet.latLng(36.9983, -122.0602);
 const WORLD_ORIGIN_LAT = 0;
 const WORLD_ORIGIN_LNG = 0;
 const ZOOM_LEVEL = 19;
@@ -41,6 +41,10 @@ function cellToBounds(cell: GridCellID): leaflet.LatLngBounds {
   );
 }
 
+function cellCenterLatLng(cell: GridCellID): leaflet.LatLng {
+  return cellToBounds(cell).getCenter();
+}
+
 // dom elements
 const mapElement = document.createElement("div");
 mapElement.id = "map";
@@ -67,10 +71,13 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // player marker
-leaflet.marker(ORIGIN).addTo(map).bindTooltip("teehee this is you :3");
+const playerMarker = leaflet
+  .marker(ORIGIN)
+  .addTo(map)
+  .bindTooltip("teehee this is you :3");
 
 // player grid position
-const playerCell: GridCellID = latLngToCell(ORIGIN.lat, ORIGIN.lng);
+let playerCell: GridCellID = latLngToCell(ORIGIN.lat, ORIGIN.lng);
 
 // grid data
 function cellBounds(cell: GridCellID): leaflet.LatLngBounds {
@@ -185,6 +192,19 @@ function drawGrid(cell: GridCellID) {
   views.set(idOf(cell), { rect, tokenMarker: label });
 }
 
+function updateRectStyle() {
+  for (const [key, view] of views) {
+    const [iStr, jStr] = key.split(",");
+    const cell: GridCellID = { i: Number(iStr), j: Number(jStr) };
+
+    const isNear = nearPlayer(cell);
+      view.rect.setStyle({
+      color: isNear ? "blue" : "gray",
+      weight: isNear ? 2 : 1,
+    });
+  }
+}
+
 function clearGrid() {
   const bounds = map.getBounds();
   const southWest = bounds.getSouthWest();
@@ -215,8 +235,48 @@ function clearGrid() {
   }
 }
 
+function movePlayer(di: number, dj: number) {
+  playerCell = {
+    i: playerCell.i + di,
+    j: playerCell.j + dj,
+  };
+
+  const center = cellCenterLatLng(playerCell);
+  playerMarker.setLatLng(center);
+  map.setView(center, ZOOM_LEVEL);
+
+  updateRectStyle();
+  renderHUD(`moved to cell (${playerCell.i}, ${playerCell.j})`);
+}
+
+// player movement controls
+const controlElements = document.createElement("div");
+controlElements.id = "controls";
+controlElements.innerHTML = `
+  <button id="move-north"> North </button>
+  <button id="move-south"> South </button>
+  <button id="move-west"> West </button>
+  <button id="move-east"> East </button>
+`;
+document.body.append(controlElements);
+
+(document.getElementById("move-north") as HTMLButtonElement).onclick = () => {
+  movePlayer(1, 0);
+}
+(document.getElementById("move-south") as HTMLButtonElement).onclick = () => {
+  movePlayer(-1, 0);
+}
+(document.getElementById("move-west") as HTMLButtonElement).onclick = () => {
+  movePlayer(0, -1);
+}
+(document.getElementById("move-east") as HTMLButtonElement).onclick = () => {
+  movePlayer(0, 1);
+}
+
+// initial grid rendering
 clearGrid();
 
+// update grid on map move
 map.on("moveend", () => {
   clearGrid();
 });
