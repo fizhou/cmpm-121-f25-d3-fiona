@@ -45,3 +45,25 @@ Key Gameplay Challenge: Can players craft an even higher value token by moving t
 - [x] make cells memoryless when not in view
 - [x] update token crafting goal to a larger value
 - [x] add moveend event to spawn and despawn cells
+
+## D3.C: Object Persistence
+
+Key Technical Challenge: Can your software accurately remember the state of map cells even when they scroll off the screen?
+Key Gameplay Challenge: Can you fix a gameplay bug where players can farm tokens by moving into and out of a region repeatedly to get access to fresh resources?
+
+### Steps
+
+- [ ] apply flyweight pattern to cells
+- [ ] use memento pattern to preserve the state of modified cells
+- [ ] refactor token access
+- [ ] change despawn behavior so model persists
+
+## D3.D: Gameplay Across Real-World Space and Time
+
+Key Technical Challenge: Can your software remember game state even when the page is closed? Is the player character’s in-game movement controlled by the real-world geolocation of their device?
+
+Key Gameplay Challenge: Can the user test the game with multiple gameplay sessions, some involving real-world movement and some involving simulated movement?
+
+### Steps
+
+- [ ] 
