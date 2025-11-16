@@ -12,7 +12,7 @@ const WORLD_ORIGIN_LNG = 0;
 const ZOOM_LEVEL = 19;
 const TILE_SIZE_DEGREES = 0.0001;
 const INTERACT_RANGE = 3;
-const WIN_TARGET = 64;
+const WIN_TARGET = 128;
 
 // grid cell identifiers
 interface GridCellID {
@@ -112,11 +112,13 @@ function renderHUD(msg = "") {
     <div>in hand: ${hand === null ? "nothing" : `token(${hand})`}</div>
     <div>${msg}</div>
   `;
+
   if (hand && hand >= WIN_TARGET) {
     hudElement.innerHTML +=
       `<div class="win-message">yayyyy you win! refresh to play again.</div>`;
   }
 }
+
 renderHUD();
 
 // grid rendering and interaction
