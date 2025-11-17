@@ -53,10 +53,11 @@ Key Gameplay Challenge: Can you fix a gameplay bug where players can farm tokens
 
 ### Steps
 
-- [ ] apply flyweight pattern to cells
+- [x] apply flyweight pattern to cells
 - [x] use memento pattern to preserve the state of modified cells
-- [ ] refactor token access
-- [ ] change despawn behavior so model persists
+- [x] refactor token access
+- [x] rebuild display from scratch
+- [x] make the site neater and nicer looking in style.css
 
 ## D3.D: Gameplay Across Real-World Space and Time
 
