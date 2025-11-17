@@ -54,7 +54,7 @@ Key Gameplay Challenge: Can you fix a gameplay bug where players can farm tokens
 ### Steps
 
 - [ ] apply flyweight pattern to cells
-- [ ] use memento pattern to preserve the state of modified cells
+- [x] use memento pattern to preserve the state of modified cells
 - [ ] refactor token access
 - [ ] change despawn behavior so model persists
 
@@ -66,4 +66,4 @@ Key Gameplay Challenge: Can the user test the game with multiple gameplay sessio
 
 ### Steps
 
-- [ ] 
+- [ ]

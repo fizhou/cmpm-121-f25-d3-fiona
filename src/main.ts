@@ -22,6 +22,7 @@ interface GridCellID {
 
 type TileID = `${number},${number}`;
 const idOf = (cell: GridCellID): TileID => `${cell.i},${cell.j}`;
+type TokenValue = number | null;
 
 // helper functions
 function latLngToCell(lat: number, lng: number): GridCellID {
@@ -89,24 +90,25 @@ const nearPlayer = (cell: GridCellID): boolean =>
     INTERACT_RANGE;
 
 // initial token spawning
-function initialTokenSpawn(cell: GridCellID): number | null {
+function initialToken(cell: GridCellID): TokenValue {
   const r = luck(idOf(cell));
   if (r < 0.18) return 1;
   return null;
 }
 
-const modified = new Map<TileID, number | null>();
-function currentTokenSpawn(cell: GridCellID): number | null {
+const modified = new Map<TileID, TokenValue>();
+
+function currentToken(cell: GridCellID): TokenValue {
   const key = idOf(cell);
-  return modified.has(key) ? modified.get(key)! : initialTokenSpawn(cell);
+  return modified.has(key) ? modified.get(key)! : initialToken(cell);
 }
 
-function setTokenSpawn(cell: GridCellID, value: number | null) {
+function setToken(cell: GridCellID, value: TokenValue) {
   modified.set(idOf(cell), value);
 }
 
 // inventory and hud
-let hand: number | null = null;
+let hand: TokenValue = null;
 function renderHUD(msg = "") {
   hudElement.innerHTML = `
     <div>in hand: ${hand === null ? "nothing" : `token(${hand})`}</div>
@@ -141,7 +143,7 @@ function drawGrid(cell: GridCellID) {
     interactive: false,
     icon: leaflet.divIcon({
       className: "token-label",
-      html: `${currentTokenSpawn(cell) ?? ""}`,
+      html: `${currentToken(cell) ?? ""}`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     }),
@@ -153,10 +155,10 @@ function drawGrid(cell: GridCellID) {
       return;
     }
 
-    const here = currentTokenSpawn(cell);
+    const here = currentToken(cell);
     if (hand === null && here !== null) {
       hand = here;
-      setTokenSpawn(cell, null);
+      setToken(cell, null);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: "",
@@ -167,7 +169,7 @@ function drawGrid(cell: GridCellID) {
 
     if (hand !== null && here === hand) {
       const newValue = hand * 2;
-      setTokenSpawn(cell, newValue);
+      setToken(cell, newValue);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${newValue}`,
@@ -178,7 +180,7 @@ function drawGrid(cell: GridCellID) {
     }
 
     if (hand !== null && here === null) {
-      setTokenSpawn(cell, hand);
+      setToken(cell, hand);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${hand}`,
@@ -231,8 +233,6 @@ function clearGrid() {
       map.removeLayer(view.rect);
       map.removeLayer(view.tokenMarker);
       views.delete(key);
-
-      modified.delete(key);
     }
   }
 }
