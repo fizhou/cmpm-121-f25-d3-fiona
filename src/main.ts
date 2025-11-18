@@ -1,9 +1,9 @@
 // imports
 import leaflet from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "./style.css";
 import "./_leafletWorkaround.ts";
 import luck from "./_luck.ts";
+import "./style.css";
 
 // map and grid configuration
 const ORIGIN = leaflet.latLng(36.9983, -122.0602);
@@ -44,6 +44,16 @@ function cellToBounds(cell: GridCellID): leaflet.LatLngBounds {
 
 function cellCenterLatLng(cell: GridCellID): leaflet.LatLng {
   return cellToBounds(cell).getCenter();
+}
+
+function movePlayerToCell(cell: GridCellID, msgPrefix = "moved to cell") {
+  playerCell = cell;
+  const center = cellCenterLatLng(cell);
+  playerMarker.setLatLng(center);
+  map.setView(center, ZOOM_LEVEL);
+
+  updateRectStyle();
+  renderHUD(`${msgPrefix} (${cell.i}, ${cell.j})`);
 }
 
 // dom elements
@@ -248,17 +258,7 @@ function clearGrid() {
 }
 
 function movePlayer(di: number, dj: number) {
-  playerCell = {
-    i: playerCell.i + di,
-    j: playerCell.j + dj,
-  };
-
-  const center = cellCenterLatLng(playerCell);
-  playerMarker.setLatLng(center);
-  map.setView(center, ZOOM_LEVEL);
-
-  updateRectStyle();
-  renderHUD(`moved to cell (${playerCell.i}, ${playerCell.j})`);
+  movePlayerToCell({ i: playerCell.i + di, j: playerCell.j + dj });
 }
 
 // player movement controls
