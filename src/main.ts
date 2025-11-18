@@ -22,7 +22,7 @@ interface GridCellID {
 
 type TileID = `${number},${number}`;
 const idOf = (cell: GridCellID): TileID => `${cell.i},${cell.j}`;
-type TokenValue = number | null;
+type TokenMemento = number | null;
 
 // helper functions
 function latLngToCell(lat: number, lng: number): GridCellID {
@@ -90,25 +90,31 @@ const nearPlayer = (cell: GridCellID): boolean =>
     INTERACT_RANGE;
 
 // initial token spawning
-function initialToken(cell: GridCellID): TokenValue {
+function flyweightInitialToken(cell: GridCellID): TokenMemento {
+  // flyweight intrinsic state: compute token value from cell id. recomputed whenever needed.
   const r = luck(idOf(cell));
   if (r < 0.18) return 1;
   return null;
 }
 
-const modified = new Map<TileID, TokenValue>();
+// flyweight extrinsic state: map stores extrinsic token values that differ from intrinsic state. acts as caretaker.
+const flyweightExtrinsicState = new Map<TileID, TokenMemento>();
 
-function currentToken(cell: GridCellID): TokenValue {
+function getTokenFromFlyweight(cell: GridCellID): TokenMemento {
+  // flyweight factory: returns either intrinsic or extrinsic token value.
   const key = idOf(cell);
-  return modified.has(key) ? modified.get(key)! : initialToken(cell);
+  return flyweightExtrinsicState.has(key)
+    ? flyweightExtrinsicState.get(key)!
+    : flyweightInitialToken(cell);
 }
 
-function setToken(cell: GridCellID, value: TokenValue) {
-  modified.set(idOf(cell), value);
+function setTokenMemento(cell: GridCellID, value: TokenMemento) {
+  // memento setter: updates extrinsic token value.
+  flyweightExtrinsicState.set(idOf(cell), value);
 }
 
 // inventory and hud
-let hand: TokenValue = null;
+let hand: TokenMemento = null;
 function renderHUD(msg = "") {
   hudElement.innerHTML = `
     <div>in hand: ${hand === null ? "nothing" : `token(${hand})`}</div>
@@ -125,6 +131,7 @@ renderHUD();
 
 // grid rendering and interaction
 type gridView = { rect: leaflet.Rectangle; tokenMarker: leaflet.Marker };
+// flyweight views: map of cell views to avoid recreating on each render.
 const views = new Map<TileID, gridView>();
 
 function drawGrid(cell: GridCellID) {
@@ -143,7 +150,7 @@ function drawGrid(cell: GridCellID) {
     interactive: false,
     icon: leaflet.divIcon({
       className: "token-label",
-      html: `${currentToken(cell) ?? ""}`,
+      html: `${getTokenFromFlyweight(cell) ?? ""}`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     }),
@@ -155,10 +162,11 @@ function drawGrid(cell: GridCellID) {
       return;
     }
 
-    const here = currentToken(cell);
+    const here = getTokenFromFlyweight(cell);
     if (hand === null && here !== null) {
       hand = here;
-      setToken(cell, null);
+      // memento capture: pick up token, storing its value in hand and clears by setting cell to null.
+      setTokenMemento(cell, null);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: "",
@@ -169,7 +177,8 @@ function drawGrid(cell: GridCellID) {
 
     if (hand !== null && here === hand) {
       const newValue = hand * 2;
-      setToken(cell, newValue);
+      // memento capture: merge tokens, updating cell value and storing new value as latest memento.
+      setTokenMemento(cell, newValue);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${newValue}`,
@@ -180,7 +189,8 @@ function drawGrid(cell: GridCellID) {
     }
 
     if (hand !== null && here === null) {
-      setToken(cell, hand);
+      // memento capture: place token, updates saved state.
+      setTokenMemento(cell, hand);
       label.setIcon(leaflet.divIcon({
         className: "token-label",
         html: `${hand}`,
