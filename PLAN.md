@@ -2,7 +2,7 @@
 
 # Game Design Vision
 
-... tbd ...
+My game places the player on a real map divided into a grid of tiles. Each tile may contain a token, and the player can move between tiles either manually with directional buttons or automatically through geolocation. When the player steps near a tile, they can interact with it: pick up a token, place a token, or merge two matching tokens to create a higher-value one, similar to the game 2048. Token values are generated deterministically from each tile’s coordinates (flyweight intrinsic state), and any changes the player makes are stored as extrinsic state and saved to localStorage so the world persists between game sessions and across game reloads. The goal is to keep merging until you create a token of value 128 or higher, which triggers a win.
 
 # Technologies
 
