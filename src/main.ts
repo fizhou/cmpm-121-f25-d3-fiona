@@ -51,10 +51,20 @@ function movePlayerToCell(cell: GridCellID, msgPrefix = "moved to cell") {
   const center = cellCenterLatLng(cell);
   playerMarker.setLatLng(center);
   map.setView(center, ZOOM_LEVEL);
+  saveGameState();
 
   updateRectStyle();
   renderHUD(`${msgPrefix} (${cell.i}, ${cell.j})`);
 }
+
+// game state setup
+interface GameState {
+  playerCell: GridCellID;
+  hand: TokenMemento;
+  tokens: [TileID, TokenMemento][];
+}
+
+const STORAGE_KEY = "d3-game-state";
 
 // dom elements
 const mapElement = document.createElement("div");
@@ -96,6 +106,45 @@ function stopGeolocation() {
   if (geoWatchID !== null && navigator.geolocation) {
     navigator.geolocation.clearWatch(geoWatchID);
     geoWatchID = null;
+  }
+}
+
+// save/load game state
+function saveGameState() {
+  const state: GameState = {
+    playerCell,
+    hand,
+    tokens: Array.from(flyweightExtrinsicState.entries()),
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function loadGameState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+
+  try {
+    const parsed = JSON.parse(raw) as GameState;
+    playerCell = parsed.playerCell;
+    hand = parsed.hand;
+    flyweightExtrinsicState.clear();
+    for (const [key, value] of parsed.tokens) {
+      flyweightExtrinsicState.set(key, value);
+    }
+
+    const center = cellCenterLatLng(playerCell);
+    playerMarker.setLatLng(center);
+    map.setView(center, ZOOM_LEVEL);
+
+    renderHUD("loaded saved game state.");
+    return true;
+  } catch {
+    renderHUD("save data corrupted, starting new game.");
+    return false;
   }
 }
 
@@ -215,6 +264,8 @@ function drawGrid(cell: GridCellID) {
         className: "token-label",
         html: "",
       }));
+      saveGameState();
+
       renderHUD("picked up token.");
       return;
     }
@@ -228,6 +279,8 @@ function drawGrid(cell: GridCellID) {
         html: `${newValue}`,
       }));
       hand = null;
+      saveGameState();
+
       renderHUD("merged token!");
       return;
     }
@@ -240,6 +293,8 @@ function drawGrid(cell: GridCellID) {
         html: `${hand}`,
       }));
       hand = null;
+      saveGameState();
+
       renderHUD("placed token!");
       return;
     }
@@ -292,6 +347,7 @@ function clearGrid() {
 }
 
 function movePlayer(di: number, dj: number) {
+  if (movementMode === "geolocation") return;
   movePlayerToCell({ i: playerCell.i + di, j: playerCell.j + dj });
 }
 
@@ -357,6 +413,14 @@ document.body.append(controlElements);
 
 // default to manual mode
 activateManualMode();
+
+const loaded = loadGameState();
+if (!loaded) {
+  const startCenter = cellCenterLatLng(playerCell);
+  playerMarker.setLatLng(startCenter);
+  map.setView(startCenter, ZOOM_LEVEL);
+  saveGameState();
+}
 
 // initial grid rendering
 clearGrid();
