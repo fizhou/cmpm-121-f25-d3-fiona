@@ -65,6 +65,40 @@ const hudElement = document.createElement("div");
 hudElement.id = "hud";
 document.body.append(hudElement);
 
+// geolocation setup
+let geoWatchID: number | null = null;
+
+function startGeolocation() {
+  if (!navigator.geolocation) {
+    renderHUD("geolocation is not supported by your browser.");
+    return;
+  }
+
+  geoWatchID = navigator.geolocation.watchPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const cell = latLngToCell(lat, lng);
+      movePlayerToCell(cell, "geolocated to cell");
+    },
+    (error) => {
+      renderHUD(`geolocation error: ${error.message}`);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 10000,
+    },
+  );
+}
+
+function stopGeolocation() {
+  if (geoWatchID !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(geoWatchID);
+    geoWatchID = null;
+  }
+}
+
 // map setup
 const map = leaflet.map(mapElement, {
   center: ORIGIN,
@@ -261,7 +295,43 @@ function movePlayer(di: number, dj: number) {
   movePlayerToCell({ i: playerCell.i + di, j: playerCell.j + dj });
 }
 
+// geolocation controls
+type MovementMode = "geolocation" | "manual";
+let movementMode: MovementMode = "manual";
+
+const movementModeElements = document.createElement("div");
+movementModeElements.id = "movement-mode-controls";
+movementModeElements.innerHTML = `
+  <button id="manual-mode">Manual Mode</button>
+  <button id="geolocation-mode">Geolocation Mode</button>
+`;
+document.body.append(movementModeElements);
+
+function activateManualMode() {
+  movementMode = "manual";
+  stopGeolocation();
+  controlElements.style.display = "block";
+  renderHUD("manual movement mode enabled.");
+}
+
+function activateGeolocationMode() {
+  movementMode = "geolocation";
+  startGeolocation();
+  controlElements.style.display = "none";
+  renderHUD("geolocation movement mode enabled.");
+}
+
+(document.getElementById("manual-mode") as HTMLButtonElement).onclick = () => {
+  activateManualMode();
+};
+
+(document.getElementById("geolocation-mode") as HTMLButtonElement).onclick =
+  () => {
+    activateGeolocationMode();
+  };
+
 // player movement controls
+
 const controlElements = document.createElement("div");
 controlElements.id = "controls";
 controlElements.innerHTML = `
@@ -284,6 +354,9 @@ document.body.append(controlElements);
 (document.getElementById("move-east") as HTMLButtonElement).onclick = () => {
   movePlayer(0, 1);
 };
+
+// default to manual mode
+activateManualMode();
 
 // initial grid rendering
 clearGrid();
