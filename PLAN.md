@@ -68,7 +68,7 @@ Key Gameplay Challenge: Can the user test the game with multiple gameplay sessio
 ### Steps
 
 - [ ] implement geolocation based movement
-- [ ] movement hidden behind facade
+- [x] movement hidden behind facade
 - [ ] local storage game persistance across page reloads
 - [ ] new game setting
 - [ ] mode switching
