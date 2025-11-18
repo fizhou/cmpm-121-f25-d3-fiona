@@ -27,6 +27,7 @@
   width: 100%;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 3px;
 }
 
 #controls button:hover {
@@ -51,6 +52,48 @@
   max-width: 300px;
   z-index: 1000;
   font-family: system-ui, -apple-system, sans-serif;
+}
+
+#new-game-container {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 120px;
+  position: fixed;
+  bottom: 20px;
+  right: 350px;
+  z-index: 1000;
+}
+
+#new-game {
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: #4a90e2;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#new-game:hover {
+  background: #357abd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+#new-game:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
 #hud div {

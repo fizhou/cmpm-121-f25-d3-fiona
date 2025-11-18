@@ -411,6 +411,40 @@ document.body.append(controlElements);
   movePlayer(0, 1);
 };
 
+// new game setup
+const newGameContainer = document.createElement("div");
+newGameContainer.id = "new-game-container";
+newGameContainer.innerHTML = `
+  <button id="new-game">New Game</button>
+`;
+document.body.append(newGameContainer);
+
+const newGameButton = document.getElementById("new-game") as HTMLButtonElement;
+
+newGameButton.onclick = () => {
+  localStorage.removeItem(STORAGE_KEY);
+  flyweightExtrinsicState.clear();
+  hand = null;
+
+  playerCell = latLngToCell(ORIGIN.lat, ORIGIN.lng);
+  const center = cellCenterLatLng(playerCell);
+  playerMarker.setLatLng(center);
+  map.setView(center, ZOOM_LEVEL);
+
+  for (const [, view] of views) {
+    map.removeLayer(view.rect);
+    map.removeLayer(view.tokenMarker);
+  }
+  views.clear();
+
+  activateManualMode();
+
+  clearGrid();
+  saveGameState();
+
+  renderHUD("started a new game.");
+};
+
 // default to manual mode
 activateManualMode();
 
